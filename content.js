@@ -9,7 +9,7 @@ const CLAIM_PATTERNS = [
   /(proved|proven) that/i,
   /fact:/i,
   /it is (known|proven|established) that/i,
-  /(always|never|every|all|no) [a-z]+ (are|is|do|does)/i
+  /(always|never|every|all|no) [a-z]+ (are|is|do|does)/i,
   /(\d+)% of [a-z]+ (believe|think|say)/i,
   /experts (claim|say|believe)/i,
   /new study (shows|reveals|finds)/i,
