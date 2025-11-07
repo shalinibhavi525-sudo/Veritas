@@ -45,7 +45,7 @@ async function scanPage() {
                 
                 loading.style.display = 'none';
                 scanBtn.disabled = false;
-                claimsList.innerHTML = '<p style="color: white; padding: 10px;">Error: Connection lost. Did you reload the extension?</p>';
+                claimsList.innerHTML = '<p style="color: white; padding: 10px;">Error: Highlighting failed to start.</p>';
                 return;
             }
 
