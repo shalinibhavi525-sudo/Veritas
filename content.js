@@ -138,7 +138,25 @@ function showClaimResult(result) {
   
   document.body.appendChild(popup);
 }
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === 'runVeritasProtocol') {
+        const claims = detectClaims();
+        console.log(`Veritas Protocol: Activating on ${claims.length} claims.`);
+        
+        claims.forEach(claim => {
+            highlightClaim(claim.node, 0.5); 
+        });
 
+        sendResponse({ status: "complete", claimsCount: claims.length });
+        return true; 
+    }
+  
+    if (request.action === 'getClaims') {
+        const claims = detectClaims();
+        sendResponse({ claims: claims });
+        return true; 
+    }
+});
 window.addEventListener('load', () => {
   const claims = detectClaims();
   console.log(`🔍 Veritas found ${claims.length} potential claims`);
