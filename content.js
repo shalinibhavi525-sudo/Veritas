@@ -10,6 +10,14 @@ const CLAIM_PATTERNS = [
   /fact:/i,
   /it is (known|proven|established) that/i,
   /(always|never|every|all|no) [a-z]+ (are|is|do|does)/i
+  /(\d+)% of [a-z]+ (believe|think|say)/i,
+  /experts (claim|say|believe)/i,
+  /new study (shows|reveals|finds)/i,
+  /according to (a|the) (study|report|survey)/i,
+  /(proven|confirmed) (to be|that)/i,
+  /scientific evidence (shows|suggests)/i,
+  /data (shows|reveals|suggests)/i,
+  /(always|never|everyone|nobody|all|none) [a-z]+ (are|is|do)/i
 ];
 
 function detectClaims() {
