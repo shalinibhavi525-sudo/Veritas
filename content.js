@@ -147,7 +147,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             highlightClaim(claim.node, 0.5); 
         });
 
-        sendResponse({ status: "complete", claimsCount: claims.length });
+        sendResponse({ status: "highlighting_started" });
         return true; 
     }
   
