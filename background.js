@@ -5,6 +5,19 @@ const FACTCHECK_APIS = {
 };
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === 'runVeritasProtocol') {
+        chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+            if (tabs.length > 0) {
+                chrome.tabs.sendMessage(tabs[0].id, request, function(response) {
+                    sendResponse(response);
+                });
+            } else {
+                sendResponse({ status: 'error', message: 'No active tab.' });
+            }
+        });
+        // CRUCIAL: Must return true for the asynchronous response
+        return true; 
+    }
   if (request.action === 'factCheck') {
     checkClaimWithAPIs(request.claim)
       .then(result => sendResponse({ result }))
