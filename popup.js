@@ -38,32 +38,44 @@ async function scanPage() {
     try {
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
         
-       chrome.tabs.sendMessage(tab.id, { action: 'runVeritasProtocol' }, () => {
-             chrome.tabs.sendMessage(tab.id, { action: 'getClaims' }, (response) => {
-                 loading.style.display = 'none';
-                 scanBtn.disabled = false;
-                 
-                 if (response && response.claims) {
-                     displayClaims(response.claims);
-                     
-                     chrome.storage.local.set({
-                         claimsCount: response.claims.length,
-                         pageUrl: tab.url
-                     });
-                     
-                     document.getElementById('claimsCount').textContent = response.claims.length;
-                     const score = calculatePageScore(response.claims.length);
-                     document.getElementById('pageScore').textContent = score;
-                 } else {
-                    claimsList.innerHTML = '<p style="color: white; padding: 10px;">Error: Content script did not respond. Check permissions/console.</p>';
-                 }
-             });
+        chrome.tabs.sendMessage(tab.id, { action: 'runVeritasProtocol' }, () => {
+            
+            if (chrome.runtime.lastError) {
+                console.error("Highlighting Failed:", chrome.runtime.lastError.message);
+                
+                loading.style.display = 'none';
+                scanBtn.disabled = false;
+                claimsList.innerHTML = '<p style="color: white; padding: 10px;">Error: Connection lost. Did you reload the extension?</p>';
+                return;
+            }
+
+            chrome.tabs.sendMessage(tab.id, { action: 'getClaims' }, (response) => {
+                
+                loading.style.display = 'none';
+                scanBtn.disabled = false;
+                
+                if (response && response.claims) {
+                    displayClaims(response.claims);
+                    
+                    chrome.storage.local.set({
+                        claimsCount: response.claims.length,
+                        pageUrl: tab.url
+                    });
+                    
+                    document.getElementById('claimsCount').textContent = response.claims.length;
+                    const score = calculatePageScore(response.claims.length);
+                    document.getElementById('pageScore').textContent = score;
+                } else {
+                    claimsList.innerHTML = '<p style="color: white; padding: 10px;">No response from content script. Ensure claims are being detected.</p>';
+                }
+            });
         });
+
     } catch (error) {
-        console.error('Scan error:', error);
+        console.error('Fatal Scan error:', error);
         loading.style.display = 'none';
         scanBtn.disabled = false;
-        claimsList.innerHTML = '<p style="color: white; padding: 10px;">Error scanning page. Please refresh and try again.</p>';
+        claimsList.innerHTML = '<p style="color: white; padding: 10px;">Fatal error accessing the tab. 😥</p>';
     }
 }
 
