@@ -38,22 +38,26 @@ async function scanPage() {
     try {
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
         
-        chrome.tabs.sendMessage(tab.id, { action: 'getClaims' }, (response) => {
-            loading.style.display = 'none';
-            scanBtn.disabled = false;
-            
-            if (response && response.claims) {
-                displayClaims(response.claims);
-                
-                chrome.storage.local.set({
-                    claimsCount: response.claims.length,
-                    pageUrl: tab.url
-                });
-                
-                document.getElementById('claimsCount').textContent = response.claims.length;
-                const score = calculatePageScore(response.claims.length);
-                document.getElementById('pageScore').textContent = score;
-            }
+       chrome.tabs.sendMessage(tab.id, { action: 'runVeritasProtocol' }, () => {
+             chrome.tabs.sendMessage(tab.id, { action: 'getClaims' }, (response) => {
+                 loading.style.display = 'none';
+                 scanBtn.disabled = false;
+                 
+                 if (response && response.claims) {
+                     displayClaims(response.claims);
+                     
+                     chrome.storage.local.set({
+                         claimsCount: response.claims.length,
+                         pageUrl: tab.url
+                     });
+                     
+                     document.getElementById('claimsCount').textContent = response.claims.length;
+                     const score = calculatePageScore(response.claims.length);
+                     document.getElementById('pageScore').textContent = score;
+                 } else {
+                    claimsList.innerHTML = '<p style="color: white; padding: 10px;">Error: Content script did not respond. Check permissions/console.</p>';
+                 }
+             });
         });
     } catch (error) {
         console.error('Scan error:', error);
