@@ -94,8 +94,27 @@ function displayClaims(claims) {
             <strong>${index + 1}.</strong> ${claim.text.substring(0, 100)}${claim.text.length > 100 ? '...' : ''}
         `;
         claimItem.addEventListener('click', () => {
-            alert('Fact-checking: ' + claim.text + '\n\nFull fact-check feature coming soon!');
-        });
-        claimsList.appendChild(claimItem);
+           const checkStatusSpan = document.createElement('span');
+    checkStatusSpan.style.fontSize = '10px';
+    checkStatusSpan.textContent = ' (Checking...)';
+    claimItem.appendChild(checkStatusSpan);
+
+    chrome.runtime.sendMessage({
+        action: 'factCheck',
+        claim: claim.text    
+    }, (response) => {
+        checkStatusSpan.remove();
+
+        if (response && response.result) {
+            const result = response.result;
+        
+            claimItem.innerHTML = `
+                <strong>${index + 1}.</strong> ${claim.text.substring(0, 100)}${claim.text.length > 100 ? '...' : ''}
+                <br><span style="color:#a8dadc; font-weight:bold; font-size:11px;">Status: ${result.status}</span>
+                <span style="color:yellow; font-weight:bold; font-size:11px;"> | Credibility: ${result.credibility}</span>
+            `;
+        } else {
+            claimItem.innerHTML += ' <span style="color:red; font-size:11px;">(Error: Failed to check)</span>';
+        }
     });
-}
+});
