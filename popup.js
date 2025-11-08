@@ -38,17 +38,20 @@ async function scanPage() {
     try {
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
         
-        chrome.tabs.sendMessage(tab.id, { action: 'runVeritasProtocol' }, () => {
+        // 1. Tell content.js to run the detection and highlighting.
+        // NOTE: We rely on content.js to send a 'highlighting_started' response.
+        chrome.tabs.sendMessage(tab.id, { action: 'runVeritasProtocol' }, (highlightResponse) => {
             
-            if (chrome.runtime.lastError) {
-                console.error("Highlighting Failed:", chrome.runtime.lastError.message);
+            if (chrome.runtime.lastError || highlightResponse?.status !== 'highlighting_started') {
+                console.error("Highlighting Failed:", chrome.runtime.lastError?.message || "No response from content script.");
                 
                 loading.style.display = 'none';
                 scanBtn.disabled = false;
-                claimsList.innerHTML = '<p style="color: white; padding: 10px;">Error: Highlighting failed to start.</p>';
+                claimsList.innerHTML = '<p style="color: white; padding: 10px;">Error: Content script failed to start. Did you reload the extension? 😥</p>';
                 return;
             }
 
+            // 2. Immediately ask content.js for the CACHED list of claims.
             chrome.tabs.sendMessage(tab.id, { action: 'getClaims' }, (response) => {
                 
                 loading.style.display = 'none';
@@ -66,7 +69,7 @@ async function scanPage() {
                     const score = calculatePageScore(response.claims.length);
                     document.getElementById('pageScore').textContent = score;
                 } else {
-                    claimsList.innerHTML = '<p style="color: white; padding: 10px;">No response from content script. Ensure claims are being detected.</p>';
+                    claimsList.innerHTML = '<p style="color: white; padding: 10px;">No claims data received.</p>';
                 }
             });
         });
@@ -93,28 +96,35 @@ function displayClaims(claims) {
         claimItem.innerHTML = `
             <strong>${index + 1}.</strong> ${claim.text.substring(0, 100)}${claim.text.length > 100 ? '...' : ''}
         `;
-        claimItem.addEventListener('click', () => {
-           const checkStatusSpan = document.createElement('span');
-    checkStatusSpan.style.fontSize = '10px';
-    checkStatusSpan.textContent = ' (Checking...)';
-    claimItem.appendChild(checkStatusSpan);
-
-    chrome.runtime.sendMessage({
-        action: 'factCheck',
-        claim: claim.text    
-    }, (response) => {
-        checkStatusSpan.remove();
-
-        if (response && response.result) {
-            const result = response.result;
         
-            claimItem.innerHTML = `
-                <strong>${index + 1}.</strong> ${claim.text.substring(0, 100)}${claim.text.length > 100 ? '...' : ''}
-                <br><span style="color:#a8dadc; font-weight:bold; font-size:11px;">Status: ${result.status}</span>
-                <span style="color:yellow; font-weight:bold; font-size:11px;"> | Credibility: ${result.credibility}</span>
-            `;
-        } else {
-            claimItem.innerHTML += ' <span style="color:red; font-size:11px;">(Error: Failed to check)</span>';
-        }
-    });
-});
+        claimItem.addEventListener('click', () => {
+            const checkStatusSpan = document.createElement('span');
+            checkStatusSpan.style.fontSize = '10px';
+            checkStatusSpan.textContent = ' (Checking...)';
+            claimItem.appendChild(checkStatusSpan);
+
+            chrome.runtime.sendMessage({
+                action: 'factCheck',
+                claim: claim.text    
+            }, (response) => {
+                checkStatusSpan.remove();
+
+                if (response && response.result) {
+                    const result = response.result;
+                    
+                    claimItem.innerHTML = `
+                        <strong>${index + 1}.</strong> ${claim.text.substring(0, 100)}${claim.text.length > 100 ? '...' : ''}
+                        <br><span style="color:#a8dadc; font-weight:bold; font-size:11px;">Status: ${result.status}</span>
+                        <span style="color:yellow; font-weight:bold; font-size:11px;"> | Credibility: ${result.credibility}</span>
+                    `;
+                } else {
+                    claimItem.innerHTML += ' <span style="color:red; font-size:11px;">(Error: Failed to check)</span>';
+                }
+            });
+        }); // <-- FIX: Closing the click listener function
+        
+        claimsList.appendChild(claimItem);
+
+    }); // <-- FIX: Closing the forEach function
+} // <-- FIX: Closing the displayClaims function
+
