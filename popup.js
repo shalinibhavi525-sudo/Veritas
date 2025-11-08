@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function loadStats() {
     try {
+        // Retrieve cached stats from chrome.storage
         const result = await chrome.storage.local.get(['claimsCount', 'pageUrl']);
         document.getElementById('claimsCount').textContent = result.claimsCount || 0;
         
@@ -31,6 +32,7 @@ async function scanPage() {
     const claimsList = document.getElementById('claimsList');
     const scanBtn = document.getElementById('scanBtn');
     
+    // UI state: Scanning started
     loading.style.display = 'block';
     claimsList.innerHTML = '';
     scanBtn.disabled = true;
@@ -38,28 +40,42 @@ async function scanPage() {
     try {
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
         
-        // 1. Tell content.js to run the detection and highlighting.
-        // NOTE: We rely on content.js to send a 'highlighting_started' response.
-        chrome.tabs.sendMessage(tab.id, { action: 'runVeritasProtocol' }, (highlightResponse) => {
-            
-            if (chrome.runtime.lastError || highlightResponse?.status !== 'highlighting_started') {
-                console.error("Highlighting Failed:", chrome.runtime.lastError?.message || "No response from content script.");
-                
-                loading.style.display = 'none';
-                scanBtn.disabled = false;
-                claimsList.innerHTML = '<p style="color: white; padding: 10px;">Error: Content script failed to start. Did you reload the extension? 😥</p>';
-                return;
-            }
+        // Step 1: Tell content.js to run the detection and highlight claims
+        // Uses a Promise to correctly handle the asynchronous sendMessage and check for errors
+        const highlightStarted = await new Promise((resolve, reject) => {
+            chrome.tabs.sendMessage(tab.id, { action: 'runVeritasProtocol' }, (response) => {
+                if (chrome.runtime.lastError) {
+                    // Check for general connection error (e.g., content script not loaded on page)
+                    reject(new Error(chrome.runtime.lastError.message));
+                    return;
+                }
+                if (response?.status === 'highlighting_started') {
+                    resolve(true);
+                } else {
+                    // This happens if content.js sends an unexpected response
+                    reject(new Error("Content script failed to return 'highlighting_started' status."));
+                }
+            });
+        });
 
-            // 2. Immediately ask content.js for the CACHED list of claims.
+        if (highlightStarted) {
+            // Step 2: Get the list of detected claims from content.js 
             chrome.tabs.sendMessage(tab.id, { action: 'getClaims' }, (response) => {
                 
+                // UI state: Scanning complete
                 loading.style.display = 'none';
                 scanBtn.disabled = false;
+                
+                if (chrome.runtime.lastError) {
+                    console.error("Get Claims Failed:", chrome.runtime.lastError.message);
+                    claimsList.innerHTML = '<p style="color: white; padding: 10px;">Error: Failed to fetch claims.</p>';
+                    return;
+                }
                 
                 if (response && response.claims) {
                     displayClaims(response.claims);
                     
+                    // Update Chrome Storage and UI
                     chrome.storage.local.set({
                         claimsCount: response.claims.length,
                         pageUrl: tab.url
@@ -72,13 +88,13 @@ async function scanPage() {
                     claimsList.innerHTML = '<p style="color: white; padding: 10px;">No claims data received.</p>';
                 }
             });
-        });
+        }
 
     } catch (error) {
         console.error('Fatal Scan error:', error);
         loading.style.display = 'none';
         scanBtn.disabled = false;
-        claimsList.innerHTML = '<p style="color: white; padding: 10px;">Fatal error accessing the tab. 😥</p>';
+        claimsList.innerHTML = `<p style="color: white; padding: 10px;">Scan Failed. Error: ${error.message} 😥</p>`;
     }
 }
 
@@ -103,6 +119,7 @@ function displayClaims(claims) {
             checkStatusSpan.textContent = ' (Checking...)';
             claimItem.appendChild(checkStatusSpan);
 
+            // Send fact-check request to background.js
             chrome.runtime.sendMessage({
                 action: 'factCheck',
                 claim: claim.text    
@@ -121,10 +138,10 @@ function displayClaims(claims) {
                     claimItem.innerHTML += ' <span style="color:red; font-size:11px;">(Error: Failed to check)</span>';
                 }
             });
-        }); // <-- FIX: Closing the click listener function
+        });
         
         claimsList.appendChild(claimItem);
 
-    }); // <-- FIX: Closing the forEach function
-} // <-- FIX: Closing the displayClaims function
+    });
+}
 
