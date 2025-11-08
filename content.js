@@ -22,41 +22,34 @@ const CLAIM_PATTERNS = [
 
 function detectClaims() {
   const textNodes = getTextNodes(document.body);
-  const claims = [];
-  
-  textNodes.forEach(node => {
+  return textNodes.flatMap(node => {
     const text = node.textContent.trim();
-    
-     CLAIM_PATTERNS.forEach(pattern => {
-      if (pattern.test(text) && text.length > 20 && text.length < 300) {
-        claims.push({
-          text: text,
-          node: node,
-          context: getContext(node)
-        });
-      }
-    });
+    return CLAIM_PATTERNS
+      .filter(pattern => pattern.test(text) && text.length > 20 && text.length < 300)
+      .map(() => ({
+        text: text,
+        node: node,
+        context: getContext(node)
+      }));
   });
-  
-  return claims;
 }
 
 function getTextNodes(element) {
-  const textNodes = [];
   const walker = document.createTreeWalker(
     element,
     NodeFilter.SHOW_TEXT,
     null,
     false
   );
-  
+
+  const textNodes = [];
   let node;
   while (node = walker.nextNode()) {
-    if (node.textContent.trim().length > 0) {
+    if (node.textContent.trim()) {
       textNodes.push(node);
     }
   }
-  
+
   return textNodes;
 }
 
@@ -72,18 +65,17 @@ function getContext(node) {
 function highlightClaim(node, credibility) {
   const span = document.createElement('span');
   span.className = 'veritas-highlight';
-  span.style.backgroundColor = getHighlightColor(credibility);
-  span.style.borderRadius = '3px';
-  span.style.padding = '2px 4px';
-  span.style.cursor = 'pointer';
+  span.style.cssText = `
+    background-color: ${getHighlightColor(credibility)};
+    border-radius: 3px;
+    padding: 2px 4px;
+    cursor: pointer;
+  `;
   span.textContent = node.textContent;
   span.title = 'Click to fact-check with Veritas';
-  
+
   node.parentNode.replaceChild(span, node);
- 
-  span.addEventListener('click', () => {
-    checkClaim(span.textContent);
-  });
+  span.addEventListener('click', () => checkClaim(span.textContent));
 }
 
 function getHighlightColor(credibility) {
@@ -93,11 +85,11 @@ function getHighlightColor(credibility) {
 }
 
 function checkClaim(claimText) {
-   chrome.runtime.sendMessage({
+  chrome.runtime.sendMessage({
     action: 'factCheck',
     claim: claimText
   }, response => {
-    if (response && response.result) {
+    if (response?.result) {
       showClaimResult(response.result);
     }
   });
@@ -135,28 +127,27 @@ function showClaimResult(result) {
       ">Close</button>
     </div>
   `;
-  
+
   document.body.appendChild(popup);
 }
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === 'runVeritasProtocol') {
-        const claims = detectClaims();
-        console.log(`Veritas Protocol: Activating on ${claims.length} claims.`);
-        
-        claims.forEach(claim => {
-            highlightClaim(claim.node, 0.5); 
-        });
 
-        sendResponse({ status: "highlighting_started" });
-        return true; 
-    }
-  
-    if (request.action === 'getClaims') {
-        const claims = detectClaims();
-        sendResponse({ claims: claims });
-        return true; 
-    }
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === 'runVeritasProtocol') {
+    const claims = detectClaims();
+    console.log(`Veritas Protocol: Activating on ${claims.length} claims.`);
+    
+    claims.forEach(claim => highlightClaim(claim.node, 0.5));
+    sendResponse({ status: "highlighting_started" });
+    return true; 
+  }
+
+  if (request.action === 'getClaims') {
+    const claims = detectClaims();
+    sendResponse({ claims: claims });
+    return true; 
+  }
 });
+
 window.addEventListener('load', () => {
   const claims = detectClaims();
   console.log(`🔍 Veritas found ${claims.length} potential claims`);
@@ -165,11 +156,4 @@ window.addEventListener('load', () => {
     claimsCount: claims.length,
     pageUrl: window.location.href 
   });
-});
-
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === 'getClaims') {
-    const claims = detectClaims();
-    sendResponse({ claims: claims });
-  }
 });
