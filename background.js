@@ -4,18 +4,14 @@ const FACTCHECK_APIS = {
     google: 'https://factchecktools.googleapis.com/v1alpha1/claims:search',
 };
 
-// **CRITICAL FIX: REMOVED runVeritasProtocol HANDLER**
-// The message is sent directly from popup.js to content.js.
-// Only the 'factCheck' message should be handled here.
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     
     if (request.action === 'factCheck') {
-        // Send the fact-check request to your simulation/API
         checkClaimWithAPIs(request.claim)
             .then(result => sendResponse({ result }))
             .catch(error => sendResponse({ error: error.message }));
         
-        // CRUCIAL: Must return true to indicate you will call sendResponse asynchronously
         return true;    
     }
 });
@@ -38,7 +34,6 @@ async function checkClaimWithAPIs(claimText) {
 }
 
 async function simulateFactCheck(claim) {
-    // Adds a visual delay to prove the 'Checking...' spinner works
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     const lowCredibilityKeywords = ['always', 'never', 'everyone', 'nobody', '100%'];
