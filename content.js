@@ -1,6 +1,5 @@
 console.log('🔍 Veritas is watching...');
 
-// Global cache variable to store claims once per scan (CRITICAL FIX)
 let detectedClaims = []; 
 
 const CLAIM_PATTERNS = [
@@ -143,19 +142,14 @@ function showClaimResult(result) {
     document.body.appendChild(popup);
 }
 
-// -----------------------------------------------------------
-// CONSOLIDATED MESSAGE LISTENER (CRITICAL FIX)
-// -----------------------------------------------------------
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     
-    // ACTION 1: Run detection, highlight claims, and CACHE the results
     if (request.action === 'runVeritasProtocol') {
         
         detectedClaims = detectClaims(); // Runs detection ONCE per scan
         console.log(`Veritas Protocol: Activating on ${detectedClaims.length} claims.`);
         
         detectedClaims.forEach(claim => {
-            // Note: We'll use a neutral 0.5 for initial highlight color
             highlightClaim(claim.node, 0.5); 
         });
 
@@ -163,12 +157,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return true; 
     }
     
-    // ACTION 2: Return the CACHED claims list to popup.js
     if (request.action === 'getClaims') {
         
-        // Returns the list from the cache variable, NOT by running detectClaims() again
         sendResponse({ claims: detectedClaims }); 
         return true; 
     }
-    // All other redundant listeners (like the window.onload and the duplicate getClaims) are removed.
 });
