@@ -6,7 +6,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function loadStats() {
     try {
-        // Retrieve cached stats from chrome.storage
         const result = await chrome.storage.local.get(['claimsCount', 'pageUrl']);
         document.getElementById('claimsCount').textContent = result.claimsCount || 0;
         
@@ -32,7 +31,6 @@ async function scanPage() {
     const claimsList = document.getElementById('claimsList');
     const scanBtn = document.getElementById('scanBtn');
     
-    // UI state: Scanning started
     loading.style.display = 'block';
     claimsList.innerHTML = '';
     scanBtn.disabled = true;
@@ -40,29 +38,23 @@ async function scanPage() {
     try {
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
         
-        // Step 1: Tell content.js to run the detection and highlight claims
-        // Uses a Promise to correctly handle the asynchronous sendMessage and check for errors
         const highlightStarted = await new Promise((resolve, reject) => {
             chrome.tabs.sendMessage(tab.id, { action: 'runVeritasProtocol' }, (response) => {
                 if (chrome.runtime.lastError) {
-                    // Check for general connection error (e.g., content script not loaded on page)
                     reject(new Error(chrome.runtime.lastError.message));
                     return;
                 }
                 if (response?.status === 'highlighting_started') {
                     resolve(true);
                 } else {
-                    // This happens if content.js sends an unexpected response
                     reject(new Error("Content script failed to return 'highlighting_started' status."));
                 }
             });
         });
 
         if (highlightStarted) {
-            // Step 2: Get the list of detected claims from content.js 
             chrome.tabs.sendMessage(tab.id, { action: 'getClaims' }, (response) => {
                 
-                // UI state: Scanning complete
                 loading.style.display = 'none';
                 scanBtn.disabled = false;
                 
@@ -75,7 +67,6 @@ async function scanPage() {
                 if (response && response.claims) {
                     displayClaims(response.claims);
                     
-                    // Update Chrome Storage and UI
                     chrome.storage.local.set({
                         claimsCount: response.claims.length,
                         pageUrl: tab.url
@@ -119,7 +110,6 @@ function displayClaims(claims) {
             checkStatusSpan.textContent = ' (Checking...)';
             claimItem.appendChild(checkStatusSpan);
 
-            // Send fact-check request to background.js
             chrome.runtime.sendMessage({
                 action: 'factCheck',
                 claim: claim.text    
