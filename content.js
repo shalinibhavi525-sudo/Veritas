@@ -89,7 +89,9 @@ function getCredibilityClass(score) {
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === 'runVeritasProtocol') {
+       if (request.action === 'manualCheck') {
+        checkClaim(request.text);
+    } else if (request.action === 'runVeritasProtocol') {
         const claims = detectClaims();
         claims.forEach(c => highlightClaim(c.node));
         sendResponse({ status: "highlighting_started", count: claims.length });
