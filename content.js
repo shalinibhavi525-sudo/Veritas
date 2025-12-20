@@ -1,24 +1,32 @@
 const CLAIM_PATTERNS = [
-    /according to (studies|research|experts|proponents|critics|sources)/i,
+    // 1. Standard Authority (Science/Academic)
+    /according to (studies|research|experts|proponents|critics|sources|officials)/i,
     /studies (show|revealed|indicate|suggest)/i,
     /research (suggests|indicates|found|claims)/i,
     /scientists (say|claim|found|argue|propose)/i,
     /experts (claim|say|believe|suggest|warn)/i,
-    /(proponents|advocates|adherents|members) (argue|claim|state|hold|maintain)/i,
-    /it is (claimed|rumored|alleged|purported|argued) that/i,
-    /the (idea|theory|hypothesis|belief) that/i,
+    
+    // 2. Rumor & Legend Indicators (NEW: Catching Paul McCartney type claims)
+    /it is (well known|commonly believed|rumored|alleged|purported|argued) that/i,
+    /rumor (has it|says|claims) that/i,
+    /legend (says|has it) that/i,
+    /many (believe|think|claim|say) that/i,
+    /some (people|sources) (claim|say|suggest) that/i,
+    /widely (reported|believed|thought) to/i,
     /supposedly|allegedly|purportedly|reportedly/i,
-    /often (described|referred to) as/i,
-    /commonly (believed|thought) to/i,
-    /(\d+)% of (people|americans|users|scientists|population)/i,
+    
+    // 3. Absolute & Suspicious Statements
+    /(\d+)% of (people|americans|users|population)/i,
     /fact:|the truth is|it's a fact that/i,
-    /everyone knows|no one can deny|clearly|obviously/i,
-    /(flat|globe|spherical) earth/i,
-    /conspiracy|hoax|hidden|secret (truth|data|evidence)/i,
+    /no one can deny|clearly|obviously|everyone knows/i,
+    
+    // 4. Fringe/Conspiracy Specifics
+    /flat|globe|spherical earth/i,
+    /conspiracy|hoax|hidden|secret (truth|data|evidence|replacement|clone)/i,
     /mainstream (science|media|narrative)/i,
-    /alternative (theory|explanation|history)/i
+    /alternative (theory|explanation|history)/i,
+    /replaced by|lookalike|clone|secretly/i
 ];
-
 function detectClaims() {
     const claims = [];
     const elements = document.querySelectorAll('p, li, dd, div.flex-1');
