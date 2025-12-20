@@ -8,18 +8,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Setup API Key - Use GOOGLE_API_KEY in Railway
+# Railway uses GOOGLE_API_KEY
 api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
 genai.configure(api_key=api_key)
 
 app = FastAPI()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 class ClaimRequest(BaseModel):
     text: str
@@ -27,45 +21,49 @@ class ClaimRequest(BaseModel):
 @app.post("/api/check")
 async def check_claim(request: ClaimRequest):
     try:
-        # Use the most stable model call possible
+        # We use the STABLE model without any extra 'tools' to prevent the 404 error
         model = genai.GenerativeModel('gemini-1.5-flash')
         
-        prompt = f"""Fact-check this: "{request.text}"
-        Return ONLY JSON:
+        prompt = f"""
+        Act as Veritas, the elite truth protocol. Analyze this claim: "{request.text}"
+        
+        Provide a verdict based on your vast knowledge. 
+        Return ONLY a JSON object:
         {{
             "status": "Verified" | "False" | "Misleading",
-            "explanation": "2 sentences max",
-            "credibility": 0.0 to 1.0,
-            "sources": []
-        }}"""
-
+            "explanation": "2 sentences max of evidence.",
+            "credibility": 0.0 to 1.0
+        }}
+        """
+        
         response = model.generate_content(prompt)
         
-        # Clean the response text
+        # This part ensures the AI doesn't send back extra words that break the code
         res_text = response.text.strip()
         if "```json" in res_text:
             res_text = res_text.split("```json")[1].split("```")[0].strip()
-        
+        elif "```" in res_text:
+            res_text = res_text.split("```")[1].split("```")[0].strip()
+            
         data = json.loads(res_text)
+        
+        # We grab the REAL score from the AI
+        ai_score = float(data.get("credibility", 0.5))
         
         return {
             "claim": request.text,
             "status": data.get("status", "Verified"),
             "explanation": data.get("explanation", "Analysis complete."),
-            "credibility": float(data.get("credibility", 0.9)),
-            "sources": data.get("sources", [])
+            "credibility": ai_score,
+            "sources": []
         }
     except Exception as e:
-        print(f"AI Error: {str(e)}") # This will show in Railway logs
-        # Intelligent manual check for the test
-        if "earth" in request.text.lower() and "spheroid" in request.text.lower():
-            return {"claim": request.text, "status": "Verified", "explanation": "Earth's shape is scientifically confirmed.", "credibility": 1.0, "sources": []}
-        
+        # If it STILL fails, we give a different score so you know it's a server error
         return {
             "claim": request.text,
-            "status": "Unverifiable",
+            "status": "Error",
             "explanation": f"Veritas Engine Error: {str(e)}",
-            "credibility": 0.5,
+            "credibility": 0.01, # Showing 1% if it crashes so you know it's an error
             "sources": []
         }
 
