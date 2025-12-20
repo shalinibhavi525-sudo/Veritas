@@ -106,12 +106,60 @@ function checkClaim(claimText) {
 }
 
 function showClaimResult(result) {
-    // Remove any existing popup
     const existingPopup = document.querySelector('.veritas-popup');
     if (existingPopup) {
         existingPopup.remove();
     }
 
+    let sourcesHTML = '';
+    if (result.sources && result.sources.length > 0) {
+        sourcesHTML = `
+            <div class="veritas-popup-sources">
+                <strong>Sources:</strong>
+                <ul>
+                    ${result.sources.map(src => `<li><a href="${src}" target="_blank">${src}</a></li>`).join('')}
+                </ul>
+            </div>
+        `;
+    }
+
+    const popup = document.createElement('div');
+    popup.className = 'veritas-popup';
+    popup.innerHTML = `
+        <div class="veritas-popup-card">
+            <div class="veritas-popup-header">
+                <span class="veritas-popup-icon">⚖️</span>
+                <h3 class="veritas-popup-title">Veritas Analysis</h3>
+            </div>
+            <div class="veritas-popup-claim">
+                <strong>Claim:</strong> ${result.claim}
+            </div>
+            <div class="veritas-popup-status">
+                <strong>Status:</strong> ${result.status}
+                <span class="veritas-credibility-badge credibility-${getCredibilityClass(result.credibility)}">
+                    ${Math.round(result.credibility * 100)}% Credibility
+                </span>
+            </div>
+            <div class="veritas-popup-explanation">
+                ${result.explanation}
+            </div>
+            ${sourcesHTML}
+            <button class="veritas-popup-close">Close</button>
+        </div>
+    `;
+    
+    document.body.appendChild(popup);
+
+    popup.querySelector('.veritas-popup-close').addEventListener('click', () => {
+        popup.remove();
+    });
+
+    popup.addEventListener('click', (e) => {
+        if (e.target === popup) {
+            popup.remove();
+        }
+    });
+}
     const popup = document.createElement('div');
     popup.className = 'veritas-popup';
     popup.innerHTML = `
