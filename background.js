@@ -1,3 +1,19 @@
+chrome.runtime.onInstalled.addListener(() => {
+    chrome.contextMenus.create({
+        id: "veritas-check",
+        title: "Verify with Veritas Protocol",
+        contexts: ["selection"]
+    });
+});
+
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+    if (info.menuItemId === "veritas-check") {
+        chrome.tabs.sendMessage(tab.id, { 
+            action: 'manualCheck', 
+            text: info.selectionText 
+        });
+    }
+});
 const API_URL = 'https://veritas-production.up.railway.app/api/check'; 
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
