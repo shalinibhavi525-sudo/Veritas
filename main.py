@@ -26,8 +26,7 @@ class ClaimRequest(BaseModel):
 @app.post("/api/check")
 async def check_claim(request: ClaimRequest):
     try:
-        # Switch to the stable 1.5-flash model
-        # We removed the 'tools' from the constructor to prevent the 404 v1beta error
+
         model = genai.GenerativeModel('gemini-1.5-flash')
 
         prompt = f"""
@@ -42,14 +41,12 @@ async def check_claim(request: ClaimRequest):
         }}
         """
         
-        # We call the search tool here instead of the constructor
-        # This is more stable in 2025
+
         response = model.generate_content(
             prompt, 
             tools=[{'google_search_retrieval': {}}]
         )
         
-        # Clean the response text
         res_text = response.text.strip()
         if "```json" in res_text:
             res_text = res_text.split("```json")[1].split("```")[0].strip()
