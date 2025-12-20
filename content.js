@@ -143,3 +143,24 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
     return true; 
 });
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+
+    if (request.action === 'scrollToClaim') {
+        const highlights = document.querySelectorAll('.veritas-highlight');
+        for (let h of highlights) {
+            if (h.innerText.includes(request.text.substring(0, 20))) {
+                // Scroll the claim into the middle of the screen
+                h.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Visual "Ping" effect
+                h.style.outline = "2px solid #D4AF37";
+                setTimeout(() => { h.style.outline = "none"; }, 2000);
+                
+                // Automatically open the fact-check report
+                checkClaim(h.innerText);
+                break;
+            }
+        }
+    }
+    return true;
+});
