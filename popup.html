@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Veritas</title>
+    <title>Veritas Intelligence</title>
+    <!-- Importing the official Institutional Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -13,27 +15,35 @@
 
         body {
             width: 350px;
-            min-height: 400px;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            min-height: 480px;
+            font-family: 'Inter', sans-serif;
+            background: #1a1a1a; /* DEEP CHARCOAL */
+            color: #e0e0e0;
+            border: 1px solid #D4AF37; /* GOLD BORDER */
         }
 
         .header {
-            padding: 20px;
+            padding: 30px 20px;
             text-align: center;
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
+            background: #111111;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.3);
         }
 
         .header h1 {
-            font-size: 24px;
+            font-family: 'Playfair Display', serif;
+            font-size: 28px;
+            color: #D4AF37;
+            letter-spacing: 2px;
+            text-transform: uppercase;
             margin-bottom: 5px;
         }
 
         .header p {
-            font-size: 12px;
-            opacity: 0.9;
+            font-size: 10px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            opacity: 0.6;
+            color: #D4AF37;
         }
 
         .stats {
@@ -44,96 +54,120 @@
         }
 
         .stat-card {
-            background: rgba(255,255,255,0.15);
+            background: #222222;
             padding: 15px;
-            border-radius: 10px;
-            backdrop-filter: blur(10px);
+            border-radius: 2px;
+            border: 1px solid rgba(212, 175, 55, 0.1);
+            text-align: center;
         }
 
         .stat-card h3 {
-            font-size: 12px;
-            opacity: 0.8;
-            margin-bottom: 5px;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #D4AF37;
+            margin-bottom: 8px;
         }
 
         .stat-card .value {
+            font-family: 'Playfair Display', serif;
             font-size: 28px;
             font-weight: bold;
+            color: #ffffff;
+        }
+
+        .scan-btn {
+            margin: 10px 20px 20px 20px;
+            padding: 14px;
+            background: transparent;
+            color: #D4AF37;
+            border: 1px solid #D4AF37;
+            border-radius: 2px;
+            font-family: 'Inter', sans-serif;
+            font-weight: bold;
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            width: calc(100% - 40px);
+            transition: all 0.3s ease;
+        }
+
+        .scan-btn:hover {
+            background: #D4AF37;
+            color: #1a1a1a;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+        }
+
+        .scan-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            border-color: #444;
         }
 
         .claims-list {
             padding: 0 20px 20px 20px;
-            max-height: 200px;
+            max-height: 150px;
             overflow-y: auto;
         }
 
         .claim-item {
-            background: rgba(255,255,255,0.1);
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            font-size: 12px;
+            background: rgba(255,255,255,0.02);
+            padding: 12px;
+            border-left: 2px solid #D4AF37;
+            margin-bottom: 8px;
+            font-size: 11px;
+            line-height: 1.4;
+            color: #bbb;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: 0.2s;
         }
 
         .claim-item:hover {
-            background: rgba(255,255,255,0.2);
-            transform: translateX(5px);
-        }
-
-        .scan-btn {
-            margin: 0 20px 20px 20px;
-            padding: 12px;
-            background: white;
-            color: #667eea;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            width: calc(100% - 40px);
-            transition: all 0.2s;
-        }
-
-        .scan-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            background: rgba(212, 175, 55, 0.05);
+            color: #fff;
         }
 
         .footer {
-            padding: 15px 20px;
+            padding: 15px;
             text-align: center;
-            font-size: 11px;
-            opacity: 0.8;
-            border-top: 1px solid rgba(255,255,255,0.2);
+            font-size: 9px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            opacity: 0.3;
+            border-top: 1px solid rgba(212, 175, 55, 0.1);
         }
 
         .loading {
             text-align: center;
             padding: 20px;
-            font-size: 14px;
         }
 
         .spinner {
-            border: 3px solid rgba(255,255,255,0.3);
-            border-top: 3px solid white;
+            border: 2px solid rgba(212, 175, 55, 0.1);
+            border-top: 2px solid #D4AF37;
             border-radius: 50%;
-            width: 30px;
-            height: 30px;
+            width: 24px;
+            height: 24px;
             animation: spin 1s linear infinite;
-            margin: 10px auto;
+            margin: 0 auto 10px auto;
         }
 
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* Dossier-style scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #1a1a1a; }
+        ::-webkit-scrollbar-thumb { background: #D4AF37; }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>🔍 Veritas</h1>
-        <p>Truth Protocol</p>
+        <h1>Veritas</h1>
+        <p>Intelligence Protocol</p>
     </div>
 
     <div class="stats">
@@ -142,22 +176,22 @@
             <div class="value" id="claimsCount">0</div>
         </div>
         <div class="stat-card">
-            <h3>Page Score</h3>
+            <h3>Integrity</h3>
             <div class="value" id="pageScore">--</div>
         </div>
     </div>
 
-    <button class="scan-btn" id="scanBtn">Scan This Page</button>
+    <button class="scan-btn" id="scanBtn">Commence Protocol</button>
 
     <div id="loading" class="loading" style="display: none;">
         <div class="spinner"></div>
-        <p>Analyzing claims...</p>
+        <p style="font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: #D4AF37;">Consulting Archives...</p>
     </div>
 
     <div class="claims-list" id="claimsList"></div>
 
     <div class="footer">
-        Built with ❤️ for truth | v1.0.0
+        Institutional Record | v1.0.0
     </div>
 
     <script src="popup.js"></script>
