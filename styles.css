@@ -233,3 +233,46 @@
     -webkit-font-smoothing: antialiased !important;
     -moz-osx-font-smoothing: grayscale !important;
 }
+/* Sources list styling */
+.veritas-popup-sources {
+    margin: 16px 0 !important;
+    padding: 12px !important;
+    background: rgba(62, 39, 35, 0.15) !important;
+    border-radius: 6px !important;
+    font-size: 12px !important;
+}
+
+.veritas-popup-sources strong {
+    color: #D4AF37 !important;
+    display: block !important;
+    margin-bottom: 8px !important;
+}
+
+.veritas-popup-sources ul {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.veritas-popup-sources li {
+    margin: 6px 0 !important;
+    padding-left: 16px !important;
+    position: relative !important;
+}
+
+.veritas-popup-sources li::before {
+    content: '→' !important;
+    position: absolute !important;
+    left: 0 !important;
+    color: #D4AF37 !important;
+}
+
+.veritas-popup-sources a {
+    color: #A0A0A0 !important;
+    text-decoration: none !important;
+    transition: color 0.2s ease !important;
+}
+
+.veritas-popup-sources a:hover {
+    color: #D4AF37 !important;
+}
