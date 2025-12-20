@@ -58,10 +58,30 @@ function calculatePageScore(count) {
 
 function displayClaimsList(claims) {
     const list = document.getElementById('claimsList');
+    list.innerHTML = ''; 
+    
     if (claims.length === 0) {
-        list.innerHTML = '<p style="text-align:center; font-size:12px; opacity:0.7;">No suspicious claims detected. Excellence.</p>';
+        list.innerHTML = '<p style="text-align:center; font-size:12px; opacity:0.7;">No suspicious claims detected.</p>';
         return;
     }
+    
+    claims.forEach((claim, i) => {
+        const item = document.createElement('div');
+        item.className = 'claim-item';
+        item.innerHTML = `<strong>${i+1}.</strong> ${claim.text.substring(0, 60)}...`;
+        
+        // This makes the claim in the list clickable!
+        item.onclick = () => {
+            chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+                chrome.tabs.sendMessage(tabs[0].id, { 
+                    action: 'scrollToClaim', 
+                    text: claim.text 
+                });
+            });
+        };
+        list.appendChild(item);
+    });
+}
     
     claims.forEach((claim, i) => {
         const item = document.createElement('div');
