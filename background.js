@@ -1,6 +1,6 @@
 console.log('Veritas background service running');
 
-const API_URL = 'https://veritas-production.up.railway.app/'; 
+const API_URL = 'https://veritas-production.up.railway.app/api/check'; 
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'factCheck') {
