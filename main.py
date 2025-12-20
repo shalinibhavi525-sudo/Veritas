@@ -1,17 +1,18 @@
 import os
 import json
+import google.generativeai as genai
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from google import genai
-from google.genai import types
 from dotenv import load_dotenv
 
 load_dotenv()
 
+# Use the stable SDK configuration
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+
 app = FastAPI()
 
-# Allow your extension to talk to the backend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -19,51 +20,49 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize the modern 2025 Client
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
-
 class ClaimRequest(BaseModel):
     text: str
 
 @app.post("/api/check")
 async def check_claim(request: ClaimRequest):
     try:
-        # Use Gemini 2.0 Flash - The fastest model for 2025 launches
-        # Includes Google Search Tool (Grounded Search)
-        response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=f"Fact-check this: {request.text}",
-            config=types.GenerateContentConfig(
-                tools=[types.Tool(google_search=types.GoogleSearch())],
-                response_mime_type="application/json",
-                response_schema={
-                    "type": "object",
-                    "properties": {
-                        "status": {"type": "string"},
-                        "explanation": {"type": "string"},
-                        "credibility": {"type": "number"},
-                        "sources": {"type": "array", "items": {"type": "string"}}
-                    }
-                }
-            )
+        # Stable version of Gemini 1.5 Flash with Search Grounding
+        model = genai.GenerativeModel(
+            model_name='gemini-1.5-flash',
+            tools=[{'google_search_retrieval': {}}]
         )
 
-        # Gemini 2.0 returns structured JSON automatically with the config above
-        result = json.loads(response.text)
+        prompt = (
+            f"Fact-check this claim for the Veritas Truth Protocol: {request.text}\n\n"
+            "Return ONLY a JSON object with these keys:\n"
+            "status (Verified, False, or Misleading),\n"
+            "explanation (2 sentences),\n"
+            "credibility (0.0 to 1.0),\n"
+            "sources (list of URLs)."
+        )
+
+        response = model.generate_content(prompt)
+        
+        # Robust JSON extraction
+        res_text = response.text.strip()
+        if "```json" in res_text:
+            res_text = res_text.split("```json")[1].split("```")[0].strip()
+        
+        data = json.loads(res_text)
         
         return {
             "claim": request.text,
-            "status": result.get("status", "Verified"),
-            "explanation": result.get("explanation", "Verified against current records."),
-            "credibility": result.get("credibility", 1.0),
-            "sources": result.get("sources", [])
+            "status": data.get("status", "Verified"),
+            "explanation": data.get("explanation", "Verified against public records."),
+            "credibility": data.get("credibility", 1.0),
+            "sources": data.get("sources", [])
         }
     except Exception as e:
-        print(f"Deployment Error: {e}")
+        print(f"Error: {e}")
         return {
             "claim": request.text,
             "status": "Unverifiable",
-            "explanation": "Veritas is currently refining its connection to the archives.",
+            "explanation": "The Veritas engine encountered a temporary connection issue.",
             "credibility": 0.5,
             "sources": []
         }
