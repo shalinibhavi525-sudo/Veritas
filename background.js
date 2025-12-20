@@ -1,41 +1,58 @@
 console.log('Veritas background service running');
 
-const FACTCHECK_APIS = {
-    google: 'https://factchecktools.googleapis.com/v1alpha1/claims:search',
-};
-
+const API_URL = 'https://your-backend-url.railway.app/api/check'; 
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    
     if (request.action === 'factCheck') {
-        checkClaimWithAPIs(request.claim)
+        checkClaimWithAPI(request.claim)
             .then(result => sendResponse({ result }))
-            .catch(error => sendResponse({ error: error.message }));
+            .catch(error => sendResponse({ 
+                result: {
+                    claim: request.claim,
+                    status: 'Error',
+                    explanation: 'Could not connect to fact-checking service.',
+                    credibility: 0.5
+                }
+            }));
         
-        return true;    
+        return true;
     }
 });
 
-async function checkClaimWithAPIs(claimText) {
+async function checkClaimWithAPI(claimText) {
     try {
-        const result = await simulateFactCheck(claimText);
-        return result;
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ text: claimText })
+        });
+        
+        if (!response.ok) {
+            throw new Error('API request failed');
+        }
+        
+        const data = await response.json();
+        
+        return {
+            claim: data.claim,
+            status: data.status,
+            explanation: data.explanation,
+            credibility: data.credibility,
+            sources: data.sources || []
+        };
         
     } catch (error) {
         console.error('Fact-check error:', error);
-        // Provide a default error object
-        return {
-            claim: claimText,
-            status: 'Unable to verify',
-            explanation: 'Could not connect to fact-checking services.',
-            credibility: 0.5
-        };
+        
+        // Fallback to local heuristics
+        return await simulateFactCheck(claimText);
     }
 }
 
+// Fallback function if API fails
 async function simulateFactCheck(claim) {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
     const lowCredibilityKeywords = ['always', 'never', 'everyone', 'nobody', '100%'];
     const hasLowCredibility = lowCredibilityKeywords.some(keyword => 
         claim.toLowerCase().includes(keyword)
@@ -53,12 +70,7 @@ async function simulateFactCheck(claim) {
     return {
         claim: claim,
         status: 'Needs Verification',
-        explanation: 'This claim should be verified with authoritative sources. No definitive fact-check found.',
+        explanation: 'This claim should be verified with authoritative sources.',
         credibility: 0.5
     };
-}
-
-// Function placeholder for future API integration
-async function checkWithGoogleAPI(claim) {
-    // Future API logic goes here
 }
