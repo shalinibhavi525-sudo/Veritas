@@ -84,15 +84,14 @@ function highlightClaim(node, credibility) {
     node.parentNode.replaceChild(span, node);
     
     span.addEventListener('click', () => {
-        // Highlighting click handler: show the result pop-up
         checkClaim(span.textContent); 
     });
 }
 
 function getHighlightColor(credibility) {
-    if (credibility > 0.7) return '#90EE9080'; // Green (likely true)
-    if (credibility > 0.4) return '#FFD70080'; // Yellow (mixed)
-    return '#FF634780'; // Red (likely false)
+    if (credibility > 0.7) return 'rgba(76, 175, 80, 0.12)'; // Green
+    if (credibility > 0.4) return 'rgba(255, 193, 7, 0.12)'; // Amber
+    return 'rgba(244, 67, 54, 0.12)'; // Red
 }
 
 function checkClaim(claimText) {
@@ -107,46 +106,60 @@ function checkClaim(claimText) {
 }
 
 function showClaimResult(result) {
+    // Remove any existing popup
+    const existingPopup = document.querySelector('.veritas-popup');
+    if (existingPopup) {
+        existingPopup.remove();
+    }
+
     const popup = document.createElement('div');
     popup.className = 'veritas-popup';
     popup.innerHTML = `
-        <div style="
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            border: 2px solid #667eea;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            z-index: 999999;
-            max-width: 400px;
-        ">
-            <h3 style="margin: 0 0 10px 0; color: #667eea;">Veritas Fact-Check</h3>
-            <p style="margin: 10px 0;"><strong>Claim:</strong> ${result.claim}</p>
-            <p style="margin: 10px 0;"><strong>Status:</strong> ${result.status}</p>
-            <p style="margin: 10px 0; font-size: 0.9em;">${result.explanation}</p>
-            <button onclick="this.parentElement.parentElement.remove()" style="
-                background: #667eea;
-                color: white;
-                border: none;
-                padding: 8px 16px;
-                border-radius: 6px;
-                cursor: pointer;
-                margin-top: 10px;
-            ">Close</button>
+        <div class="veritas-popup-card">
+            <div class="veritas-popup-header">
+                <span class="veritas-popup-icon">⚖️</span>
+                <h3 class="veritas-popup-title">Veritas Analysis</h3>
+            </div>
+            <div class="veritas-popup-claim">
+                <strong>Claim:</strong> ${result.claim}
+            </div>
+            <div class="veritas-popup-status">
+                <strong>Status:</strong> ${result.status}
+                <span class="veritas-credibility-badge credibility-${getCredibilityClass(result.credibility)}">
+                    ${Math.round(result.credibility * 100)}% Credibility
+                </span>
+            </div>
+            <div class="veritas-popup-explanation">
+                ${result.explanation}
+            </div>
+            <button class="veritas-popup-close">Close</button>
         </div>
     `;
     
     document.body.appendChild(popup);
+
+    // Close on button click
+    popup.querySelector('.veritas-popup-close').addEventListener('click', () => {
+        popup.remove();
+    });
+
+    // Close on background click
+    popup.addEventListener('click', (e) => {
+        if (e.target === popup) {
+            popup.remove();
+        }
+    });
+}
+
+function getCredibilityClass(credibility) {
+    if (credibility > 0.7) return 'high';
+    if (credibility > 0.4) return 'medium';
+    return 'low';
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    
     if (request.action === 'runVeritasProtocol') {
-        
-        detectedClaims = detectClaims(); // Runs detection ONCE per scan
+        detectedClaims = detectClaims();
         console.log(`Veritas Protocol: Activating on ${detectedClaims.length} claims.`);
         
         detectedClaims.forEach(claim => {
@@ -158,7 +171,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
     
     if (request.action === 'getClaims') {
-        
         sendResponse({ claims: detectedClaims }); 
         return true; 
     }
