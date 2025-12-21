@@ -1,9 +1,7 @@
 console.log('🔍 Veritas Intelligence Protocol: Service Worker Active');
 
-// ⚠️ REPLACE THIS WITH YOUR ACTUAL RENDER URL!
-const API_URL = 'https://your-backend.onrender.com/api/check';
+const API_URL = 'https://veritas-8b14.onrender.com//api/check';
 
-// Context menu setup
 chrome.runtime.onInstalled.addListener(() => {
     chrome.contextMenus.create({
         id: "veritas-check",
@@ -13,7 +11,6 @@ chrome.runtime.onInstalled.addListener(() => {
     console.log('✅ Veritas context menu created');
 });
 
-// Context menu click handler
 chrome.contextMenus.onClicked.addListener((info, tab) => {
     if (info.menuItemId === "veritas-check" && info.selectionText) {
         chrome.tabs.sendMessage(tab.id, {
@@ -23,7 +20,6 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     }
 });
 
-// Main message listener
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'factCheck') {
         console.log('📡 Fact-check request received:', request.claim.substring(0, 50) + '...');
@@ -39,7 +35,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 sendResponse({ result: fallback });
             });
         
-        return true; // Keep channel open for async response
+        return true; 
     }
 });
 
@@ -70,7 +66,6 @@ async function checkClaimWithAPI(claimText) {
         
         const data = await response.json();
         
-        // Validate response structure
         if (!data || typeof data !== 'object') {
             throw new Error('Invalid API response structure');
         }
@@ -95,7 +90,6 @@ async function checkClaimWithAPI(claimText) {
 function createFallbackResponse(claim, error) {
     const claim_lower = claim.toLowerCase();
     
-    // Check if it's a network/timeout error
     if (error.name === 'AbortError') {
         return {
             claim: claim,
@@ -106,7 +100,6 @@ function createFallbackResponse(claim, error) {
         };
     }
     
-    // Smart fallback based on claim content
     if (claim_lower.includes('flat earth') || claim_lower.includes('earth is flat')) {
         return {
             claim: claim,
@@ -127,7 +120,6 @@ function createFallbackResponse(claim, error) {
         };
     }
     
-    // Detect absolute statements
     const absoluteWords = ['always', 'never', 'everyone', 'nobody', '100%', 'all people'];
     if (absoluteWords.some(word => claim_lower.includes(word))) {
         return {
@@ -139,7 +131,6 @@ function createFallbackResponse(claim, error) {
         };
     }
     
-    // Generic fallback
     return {
         claim: claim,
         status: 'Connection Error',
