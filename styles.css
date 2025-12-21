@@ -1,182 +1,257 @@
-/* 
-    VERITAS TRUTH PROTOCOL - OFFICIAL STYLESHEET
-    Aesthetic: Old Money / Institutional Luxury
-*/
-
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Inter:wght@300;400;600&display=swap');
 
-/* 1. TEXT HIGHLIGHTS (On the webpage) */
 .veritas-highlight {
-    background: linear-gradient(135deg, rgba(212, 175, 55, 0.12) 0%, rgba(45, 45, 45, 0.05) 100%) !important;
-    border-bottom: 1px dashed rgba(212, 175, 55, 0.6) !important;
-    padding: 0 2px !important;
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.12) 0%, rgba(62, 39, 35, 0.08) 100%) !important;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.5) !important;
+    border-left: 2px solid rgba(212, 175, 55, 0.3) !important;
+    padding: 2px 4px !important;
+    margin: 0 2px !important;
     border-radius: 2px !important;
     cursor: pointer !important;
-    transition: all 0.3s ease !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     position: relative !important;
     color: inherit !important;
     text-decoration: none !important;
+    display: inline !important;
 }
 
 .veritas-highlight:hover {
-    background: rgba(212, 175, 55, 0.2) !important;
-    border-bottom: 1px solid #D4AF37 !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, rgba(62, 39, 35, 0.12) 100%) !important;
+    border-bottom-color: rgba(212, 175, 55, 0.8) !important;
+    border-left-color: rgba(212, 175, 55, 0.6) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+    transform: translateY(-1px) !important;
 }
 
-/* State: When the AI is currently thinking */
 .veritas-checking {
     animation: veritas-pulse 1.5s infinite ease-in-out !important;
-    border-bottom: 1px solid #D4AF37 !important;
+    border-bottom: 1px dashed #D4AF37 !important;
     cursor: wait !important;
 }
 
 @keyframes veritas-pulse {
-    0% { opacity: 1; }
+    0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
-    100% { opacity: 1; }
 }
 
-/* 2. THE MODAL OVERLAY */
+
 .veritas-popup {
     position: fixed !important;
-    z-index: 2147483647 !important; /* Maximum possible z-index */
+    z-index: 2147483647 !important;
     top: 0 !important;
     left: 0 !important;
     width: 100vw !important;
     height: 100vh !important;
-    background: rgba(10, 10, 10, 0.85) !important;
+    background: rgba(10, 10, 10, 0.88) !important;
     backdrop-filter: blur(8px) !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    font-family: 'Inter', -apple-system, sans-serif !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+    animation: veritas-fadeIn 0.3s ease !important;
 }
 
-/* 3. THE INTELLIGENCE CARD */
+@keyframes veritas-fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
 .veritas-popup-card {
     background: #1a1a1a !important;
-    background-image: linear-gradient(135deg, #1a1a1a 0%, #111111 100%) !important;
-    border: 1px solid #D4AF37 !important;
+    background-image: 
+        linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%),
+        repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 10px,
+            rgba(212, 175, 55, 0.01) 10px,
+            rgba(212, 175, 55, 0.01) 20px
+        ) !important;
+    border: 1px solid rgba(212, 175, 55, 0.4) !important;
     border-radius: 4px !important;
     padding: 40px !important;
-    max-width: 550px !important;
-    width: 85% !important;
-    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.7) !important;
+    max-width: 580px !important;
+    width: 90% !important;
+    max-height: 85vh !important;
+    overflow-y: auto !important;
+    box-shadow: 
+        0 30px 90px rgba(0, 0, 0, 0.8),
+        0 0 1px rgba(212, 175, 55, 0.5) inset !important;
     color: #e0e0e0 !important;
     position: relative !important;
     animation: veritas-slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 @keyframes veritas-slideUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(40px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
-/* Subtle background pattern for the card */
 .veritas-popup-card::after {
     content: "" !important;
     position: absolute !important;
-    top: 0; left: 0; right: 0; bottom: 0 !important;
-    background-image: radial-gradient(circle at 2px 2px, rgba(212, 175, 55, 0.03) 1px, transparent 0) !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background-image: radial-gradient(
+        circle at 2px 2px,
+        rgba(212, 175, 55, 0.02) 1px,
+        transparent 0
+    ) !important;
     background-size: 24px 24px !important;
     pointer-events: none !important;
+    opacity: 0.5 !important;
 }
 
-/* 4. HEADER & TITLE */
+.veritas-popup-card::-webkit-scrollbar {
+    width: 6px !important;
+}
+
+.veritas-popup-card::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3) !important;
+}
+
+.veritas-popup-card::-webkit-scrollbar-thumb {
+    background: rgba(212, 175, 55, 0.4) !important;
+    border-radius: 3px !important;
+}
+
+.veritas-popup-card::-webkit-scrollbar-thumb:hover {
+    background: rgba(212, 175, 55, 0.6) !important;
+}
+
 .veritas-popup-header {
     display: flex !important;
     align-items: center !important;
     border-bottom: 1px solid rgba(212, 175, 55, 0.2) !important;
     padding-bottom: 20px !important;
-    margin-bottom: 25px !important;
+    margin-bottom: 28px !important;
+    position: relative !important;
 }
 
-.veritas-popup-title {
-    font-family: 'Playfair Display', serif !important;
-    font-size: 26px !important;
-    font-weight: 700 !important;
-    color: #D4AF37 !important;
-    letter-spacing: 1.5px !important;
-    text-transform: uppercase !important;
+.veritas-popup-header::after {
+    content: '' !important;
+    position: absolute !important;
+    bottom: -1px !important;
+    left: 0 !important;
+    width: 80px !important;
+    height: 1px !important;
+    background: linear-gradient(90deg, #D4AF37, transparent) !important;
 }
 
 .veritas-popup-icon {
-    font-size: 24px !important;
-    margin-right: 15px !important;
+    font-size: 26px !important;
+    margin-right: 16px !important;
+    filter: drop-shadow(0 2px 4px rgba(212, 175, 55, 0.3)) !important;
 }
 
-/* 5. CLAIM & CONTENT */
+.veritas-popup-title {
+    font-family: 'Playfair Display', Georgia, serif !important;
+    font-size: 28px !important;
+    font-weight: 700 !important;
+    color: #D4AF37 !important;
+    letter-spacing: 2px !important;
+    text-transform: uppercase !important;
+    line-height: 1.2 !important;
+}
+
 .veritas-popup-claim {
-    font-family: 'Playfair Display', serif !important;
+    font-family: 'Playfair Display', Georgia, serif !important;
     font-style: italic !important;
-    font-size: 16px !important;
-    line-height: 1.6 !important;
+    font-size: 15px !important;
+    line-height: 1.7 !important;
     color: #ffffff !important;
     padding: 20px !important;
-    background: rgba(212, 175, 55, 0.03) !important;
-    border-left: 2px solid #D4AF37 !important;
-    margin-bottom: 25px !important;
+    background: rgba(212, 175, 55, 0.04) !important;
+    border-left: 3px solid rgba(212, 175, 55, 0.5) !important;
+    margin-bottom: 28px !important;
+    border-radius: 2px !important;
+}
+
+.veritas-popup-claim strong {
+    font-family: 'Inter', sans-serif !important;
+    font-style: normal !important;
+    font-size: 10px !important;
+    letter-spacing: 2px !important;
+    color: #D4AF37 !important;
+    display: block !important;
+    margin-bottom: 12px !important;
 }
 
 .veritas-popup-status {
     font-size: 11px !important;
     font-weight: 700 !important;
-    letter-spacing: 2px !important;
+    letter-spacing: 2.5px !important;
     text-transform: uppercase !important;
     color: #D4AF37 !important;
-    margin-bottom: 10px !important;
+    margin-bottom: 12px !important;
     display: flex !important;
     align-items: center !important;
+    flex-wrap: wrap !important;
+}
+
+.veritas-popup-status strong {
+    margin-right: 12px !important;
 }
 
 .veritas-popup-explanation {
     font-size: 14px !important;
     line-height: 1.8 !important;
-    color: #b0b0b0 !important;
-    margin-bottom: 25px !important;
+    color: #b8b8b8 !important;
+    margin-bottom: 28px !important;
+    font-weight: 400 !important;
 }
 
-/* 6. CREDIBILITY BADGES */
 .veritas-credibility-badge {
-    margin-left: 15px !important;
-    padding: 4px 12px !important;
+    display: inline-block !important;
+    padding: 5px 12px !important;
     font-size: 10px !important;
+    font-weight: 700 !important;
+    letter-spacing: 1.5px !important;
     border-radius: 2px !important;
-    letter-spacing: 1px !important;
+    margin-left: 8px !important;
+    margin-top: 4px !important;
 }
 
 .credibility-high {
-    background: rgba(46, 125, 50, 0.1) !important;
+    background: rgba(46, 125, 50, 0.15) !important;
     color: #81c784 !important;
-    border: 1px solid rgba(129, 199, 132, 0.3) !important;
+    border: 1px solid rgba(129, 199, 132, 0.4) !important;
 }
 
 .credibility-medium {
-    background: rgba(255, 160, 0, 0.1) !important;
+    background: rgba(255, 160, 0, 0.15) !important;
     color: #ffd54f !important;
-    border: 1px solid rgba(255, 213, 79, 0.3) !important;
+    border: 1px solid rgba(255, 213, 79, 0.4) !important;
 }
 
 .credibility-low {
-    background: rgba(198, 40, 40, 0.1) !important;
+    background: rgba(198, 40, 40, 0.15) !important;
     color: #e57373 !important;
-    border: 1px solid rgba(229, 115, 115, 0.3) !important;
+    border: 1px solid rgba(229, 115, 115, 0.4) !important;
 }
 
-/* 7. SOURCES SECTION */
+
 .veritas-popup-sources {
-    margin-top: 30px !important;
-    padding-top: 20px !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+    margin-top: 32px !important;
+    padding-top: 24px !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
 }
 
 .veritas-popup-sources strong {
     display: block !important;
     font-size: 10px !important;
-    letter-spacing: 2px !important;
+    letter-spacing: 2.5px !important;
     color: #D4AF37 !important;
-    margin-bottom: 12px !important;
+    margin-bottom: 16px !important;
+    font-weight: 700 !important;
 }
 
 .veritas-popup-sources ul {
@@ -186,14 +261,26 @@
 }
 
 .veritas-popup-sources li {
-    margin-bottom: 8px !important;
+    margin-bottom: 10px !important;
+    padding-left: 20px !important;
+    position: relative !important;
+}
+
+.veritas-popup-sources li::before {
+    content: '→' !important;
+    position: absolute !important;
+    left: 0 !important;
+    color: rgba(212, 175, 55, 0.6) !important;
+    font-weight: bold !important;
 }
 
 .veritas-popup-sources a {
     color: #888 !important;
     font-size: 12px !important;
     text-decoration: none !important;
-    transition: color 0.2s !important;
+    transition: color 0.2s ease !important;
+    word-break: break-all !important;
+    line-height: 1.5 !important;
 }
 
 .veritas-popup-sources a:hover {
@@ -201,23 +288,62 @@
     text-decoration: underline !important;
 }
 
-/* 8. THE DISMISS BUTTON */
+
 .veritas-popup-close {
     width: 100% !important;
     background: transparent !important;
-    border: 1px solid #D4AF37 !important;
+    border: 1px solid rgba(212, 175, 55, 0.4) !important;
     color: #D4AF37 !important;
-    padding: 15px !important;
+    padding: 16px !important;
     font-size: 11px !important;
     font-weight: 700 !important;
     letter-spacing: 3px !important;
     text-transform: uppercase !important;
     cursor: pointer !important;
-    margin-top: 35px !important;
+    margin-top: 36px !important;
     transition: all 0.3s ease !important;
+    border-radius: 2px !important;
+    font-family: 'Inter', sans-serif !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.veritas-popup-close::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: rgba(212, 175, 55, 0.1) !important;
+    border-radius: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    transition: width 0.6s ease, height 0.6s ease !important;
+}
+
+.veritas-popup-close:hover::before {
+    width: 400px !important;
+    height: 400px !important;
 }
 
 .veritas-popup-close:hover {
     background: #D4AF37 !important;
     color: #111 !important;
-    box-shadow: 0 0 20px rgba(21
+    border-color: #D4AF37 !important;
+    box-shadow: 0 4px 16px rgba(212, 175, 55, 0.3) !important;
+}
+
+.veritas-popup-close:active {
+    transform: scale(0.98) !important;
+}
+
+@media (max-width: 600px) {
+    .veritas-popup-card {
+        width: 95% !important;
+        padding: 28px !important;
+    }
+    
+    .veritas-popup-title {
+        font-size: 22px !important;
+    }
+}
