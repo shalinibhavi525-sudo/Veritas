@@ -52,98 +52,43 @@ async def root():
 
 @app.post("/api/check", response_model=ClaimResponse)
 async def check_claim(request: ClaimRequest):
-    """
-    Veritas fact-checking endpoint
-    Returns: Verdict, explanation, credibility score, sources
-    """
-    
     claim_text = request.text.strip()
     
-    # Handle empty claims
     if not claim_text or len(claim_text) < 10:
         raise HTTPException(status_code=400, detail="Claim too short")
     
     try:
-        # Initialize Gemini model (NO TOOLS - stable endpoint!)
         model = genai.GenerativeModel('gemini-1.5-flash')
         
-        # Structured prompt for consistent output
-        prompt = f"""You are Veritas, an elite institutional fact-checking protocol with access to comprehensive knowledge databases.
+        prompt = f"""Analyze this claim: "{claim_text}"
+        Return a JSON object with:
+        - status: "Verified", "False", "Misleading", or "Unverifiable"
+        - explanation: 2-3 sentences of evidence.
+        - credibility: float between 0.0 and 1.0.
+        - sources: list of 2 real URLs."""
 
-ANALYZE THIS CLAIM:
-"{claim_text}"
-
-INSTRUCTIONS:
-1. Determine if the claim is: Verified (factually accurate), False (demonstrably wrong), Misleading (partially true but missing context), or Unverifiable (insufficient evidence)
-2. Provide 2-3 sentences of specific evidence
-3. Assign a credibility score (0.0 = completely false, 1.0 = completely verified)
-4. Provide 2 authoritative source URLs (real, accessible links only)
-
-RESPOND WITH ONLY THIS JSON (no markdown, no extra text):
-{{
-    "status": "Verified|False|Misleading|Unverifiable",
-    "explanation": "specific evidence here",
-    "credibility": 0.0-1.0,
-    "sources": ["https://url1.com", "https://url2.com"]
-}}
-
-IMPORTANT:
-- For conspiracy theories (flat earth, ancient aliens, etc.) → status "False", credibility 0.0-0.2
-- For celebrity rumors without evidence → status "Unverifiable", credibility 0.3-0.5
-- For scientific claims with evidence → status "Verified", credibility 0.7-1.0
-- For misleading statistics → status "Misleading", credibility 0.4-0.6
-"""
-        
-        # Generate response with conservative settings
+        # USE JSON MODE HERE
         response = model.generate_content(
             prompt,
             generation_config=genai.GenerationConfig(
-                temperature=0.1,  # Very low for consistency
-                max_output_tokens=600,
-                top_p=0.8
+                response_mime_type="application/json", # <--- Add this!
+                temperature=0.1
             )
         )
         
-        # Extract and clean JSON
-        res_text = response.text.strip()
-        
-        # Remove markdown code blocks
-        if "```json" in res_text:
-            res_text = res_text.split("```json")[1].split("```")[0].strip()
-        elif "```" in res_text:
-            res_text = res_text.split("```")[1].split("```")[0].strip()
-        
-        # Parse JSON
-        try:
-            data = json.loads(res_text)
-        except json.JSONDecodeError:
-            # If JSON fails, try to extract from text
-            print(f"JSON Parse Failed. Raw response: {res_text}")
-            return intelligent_fallback(claim_text)
-        
-        # Validate and normalize data
-        status = str(data.get("status", "Unverifiable"))
-        explanation = str(data.get("explanation", "Analysis complete."))
-        credibility = float(data.get("credibility", 0.5))
-        sources = data.get("sources", [])
-        
-        # Ensure credibility is in valid range
-        credibility = max(0.0, min(1.0, credibility))
-        
-        # Ensure sources is a list
-        if not isinstance(sources, list):
-            sources = []
+        # No more cleaning needed!
+        data = json.loads(response.text)
         
         return ClaimResponse(
             claim=claim_text,
-            status=status,
-            explanation=explanation,
-            credibility=credibility,
-            sources=sources[:3]  # Max 3 sources
+            status=data.get("status", "Unverifiable"),
+            explanation=data.get("explanation", "Analysis complete."),
+            credibility=float(data.get("credibility", 0.5)),
+            sources=data.get("sources", [])[:3]
         )
         
     except Exception as e:
-        print(f"❌ Error: {type(e).__name__}: {str(e)}")
+        print(f"❌ Gemini Error: {str(e)}") 
         return intelligent_fallback(claim_text)
 
 def intelligent_fallback(claim_text: str) -> ClaimResponse:
