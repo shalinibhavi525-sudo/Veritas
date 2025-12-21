@@ -46,7 +46,7 @@ async def check_claim(request: ClaimRequest):
     
     try:
         # Initialize Gemini 1.5 Flash
-        model = genai.GenerativeModel('models/gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-1.5-flash')
         
         # PROMPT: Explicitly define the JSON keys we need
         prompt = f"""Analyze the following claim as a high-level fact-checker: "{claim_text}"
