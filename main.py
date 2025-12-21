@@ -251,4 +251,4 @@ if __name__ == "__main__":
     import uvicorn
     print("🚀 Starting Veritas Intelligence Protocol...")
     print(f"📡 API Key: {'✅ Configured' if api_key else '❌ Missing'}")
-    uvicorn.run(app, host="0.0.0.0"
+    uvicorn.run(app, host="0.0.0.0")
