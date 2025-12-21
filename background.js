@@ -1,6 +1,6 @@
 console.log('🔍 Veritas Intelligence Protocol: Service Worker Active');
 
-const API_URL = 'https://veritas-8b14.onrender.com//api/check';
+const API_URL = 'https://veritas-8b14.onrender.com/api/check';
 
 chrome.runtime.onInstalled.addListener(() => {
     chrome.contextMenus.create({
