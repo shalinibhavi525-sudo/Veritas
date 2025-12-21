@@ -8,21 +8,17 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# API Key setup
+# API Key setup (Render uses the Dashboard Environment Variables, not .env)
 api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
 
-if not api_key:
-    raise ValueError("❌ Missing API Key! Set GOOGLE_API_KEY or GEMINI_API_KEY in .env")
+if api_key:
+    genai.configure(api_key=api_key)
+else:
+    print("⚠️ WARNING: No API Key found. AI features will be disabled.")
 
-genai.configure(api_key=api_key)
+app = FastAPI(title="Veritas Intelligence Protocol", version="2.0.0")
 
-app = FastAPI(
-    title="Veritas Intelligence Protocol",
-    description="Elite fact-checking backend powered by Gemini",
-    version="2.0.0"
-)
-
-# CORS - Allow extension to call API
+# CORS - Essential for the Chrome Extension to talk to the server
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -41,42 +37,36 @@ class ClaimResponse(BaseModel):
     credibility: float
     sources: list[str]
 
-@app.get("/")
-async def root():
-    return {
-        "service": "Veritas Intelligence Protocol",
-        "version": "2.0.0",
-        "status": "operational",
-        "model": "gemini-1.5-flash"
-    }
-
 @app.post("/api/check", response_model=ClaimResponse)
 async def check_claim(request: ClaimRequest):
     claim_text = request.text.strip()
     
-    if not claim_text or len(claim_text) < 10:
+    if not claim_text or len(claim_text) < 5:
         raise HTTPException(status_code=400, detail="Claim too short")
     
     try:
+        # Initialize Gemini 1.5 Flash
         model = genai.GenerativeModel('gemini-1.5-flash')
         
-        prompt = f"""Analyze this claim: "{claim_text}"
+        # PROMPT: Explicitly define the JSON keys we need
+        prompt = f"""Analyze the following claim as a high-level fact-checker: "{claim_text}"
+        
         Return a JSON object with:
-        - status: "Verified", "False", "Misleading", or "Unverifiable"
-        - explanation: 2-3 sentences of evidence.
-        - credibility: float between 0.0 and 1.0.
-        - sources: list of 2 real URLs."""
+        1. "status": (One of: "Verified", "False", "Misleading", or "Unverifiable")
+        2. "explanation": (2-3 sentences of evidence)
+        3. "credibility": (A float between 0.0 and 1.0)
+        4. "sources": (A list of 2 real URLs)"""
 
-        # USE JSON MODE HERE
+        # MAGIC: Use response_mime_type to force perfect JSON
         response = model.generate_content(
             prompt,
             generation_config=genai.GenerationConfig(
-                response_mime_type="application/json", # <--- Add this!
-                temperature=0.1
+                response_mime_type="application/json",
+                temperature=0.1 # Lower temp = more factual accuracy
             )
         )
         
-        # No more cleaning needed!
+        # Parse result (Native JSON mode ensures this doesn't fail)
         data = json.loads(response.text)
         
         return ClaimResponse(
@@ -84,116 +74,41 @@ async def check_claim(request: ClaimRequest):
             status=data.get("status", "Unverifiable"),
             explanation=data.get("explanation", "Analysis complete."),
             credibility=float(data.get("credibility", 0.5)),
-            sources=data.get("sources", [])[:3]
+            sources=data.get("sources", [])
         )
         
     except Exception as e:
-        print(f"❌ Gemini Error: {str(e)}") 
+        print(f"❌ Gemini Error: {str(e)}")
+        # If AI fails, we use the fallback logic
         return intelligent_fallback(claim_text)
 
 def intelligent_fallback(claim_text: str) -> ClaimResponse:
-    """
-    Smart fallback with contextual responses for common claim types
-    """
+    """Smart fallback for common topics if the API is down"""
     claim_lower = claim_text.lower()
     
-    # CONSPIRACY THEORIES
-    if any(word in claim_lower for word in ["flat earth", "earth is flat", "globe hoax"]):
+    # Hardcoded debunks (Add as many as you want)
+    if "flat earth" in claim_lower or "earth is flat" in claim_lower:
         return ClaimResponse(
-            claim=claim_text,
-            status="False",
-            explanation="Scientific consensus, satellite imagery, and physics confirm Earth is an oblate spheroid. Flat Earth claims contradict centuries of verified evidence from multiple independent sources.",
-            credibility=0.0,
-            sources=[
-                "https://www.nasa.gov/audience/forstudents/5-8/features/nasa-knows/what-is-earth-58.html",
-                "https://en.wikipedia.org/wiki/Spherical_Earth"
-            ]
+            claim=claim_text, status="False", credibility=0.0,
+            explanation="Scientific consensus and satellite imagery confirm Earth is an oblate spheroid.",
+            sources=["https://www.nasa.gov/", "https://en.wikipedia.org/wiki/Spherical_Earth"]
         )
     
-    if any(word in claim_lower for word in ["ancient astronaut", "aliens built", "extraterrestrial"]):
-        return ClaimResponse(
-            claim=claim_text,
-            status="False",
-            explanation="Ancient astronaut theories lack archaeological and scientific evidence. Academic consensus attributes ancient achievements to human ingenuity, engineering, and centuries of accumulated knowledge.",
-            credibility=0.1,
-            sources=[
-                "https://www.smithsonianmag.com/",
-                "https://en.wikipedia.org/wiki/Ancient_astronauts"
-            ]
-        )
-    
-    # MEDICAL MISINFORMATION
-    if "vaccine" in claim_lower and any(word in claim_lower for word in ["autism", "cause", "dangerous"]):
-        return ClaimResponse(
-            claim=claim_text,
-            status="False",
-            explanation="Multiple peer-reviewed studies involving millions of children have found no link between vaccines and autism. The original fraudulent study was retracted, and its author lost his medical license.",
-            credibility=0.0,
-            sources=[
-                "https://www.cdc.gov/vaccinesafety/concerns/autism.html",
-                "https://www.thelancet.com/"
-            ]
-        )
-    
-    # CLIMATE DENIAL
-    if "climate" in claim_lower and any(word in claim_lower for word in ["hoax", "not real", "fake"]):
-        return ClaimResponse(
-            claim=claim_text,
-            status="False",
-            explanation="97% of climate scientists agree that climate change is real and human-caused. Evidence includes rising global temperatures, melting ice caps, ocean acidification, and increased extreme weather events.",
-            credibility=0.0,
-            sources=[
-                "https://climate.nasa.gov/",
-                "https://www.ipcc.ch/"
-            ]
-        )
-    
-    # CELEBRITY RUMORS
-    if any(word in claim_lower for word in ["celebrity", "actor", "singer", "died", "secretly", "replaced"]):
-        return ClaimResponse(
-            claim=claim_text,
-            status="Unverifiable",
-            explanation="Celebrity rumors and conspiracy theories often lack credible sourcing. Without verification from reputable news outlets or official statements, such claims should be treated with skepticism.",
-            credibility=0.3,
-            sources=[
-                "https://www.snopes.com/",
-                "https://www.factcheck.org/"
-            ]
-        )
-    
-    # ABSOLUTE STATEMENTS (always, never, everyone)
-    if any(word in claim_lower for word in ["always", "never", "everyone", "nobody", "100%", "all people"]):
-        return ClaimResponse(
-            claim=claim_text,
-            status="Misleading",
-            explanation="Absolute statements are often oversimplifications. Reality is nuanced, with exceptions and context-dependent factors. Such claims typically ignore variability and individual differences.",
-            credibility=0.3,
-            sources=[]
-        )
-    
-    # GENERIC FALLBACK
+    # Generic "I don't know" fallback
     return ClaimResponse(
         claim=claim_text,
         status="Unverifiable",
-        explanation="This claim requires verification with authoritative sources. Veritas recommends cross-referencing with multiple credible outlets before accepting as fact.",
+        explanation="Connection to Veritas Cloud was interrupted. Please check your API key and try again.",
         credibility=0.5,
-        sources=[
-            "https://www.snopes.com/",
-            "https://www.factcheck.org/"
-        ]
+        sources=["https://www.snopes.com/"]
     )
 
 @app.get("/health")
-def health_check():
-    return {
-        "status": "operational",
-        "service": "veritas-intelligence-protocol",
-        "version": "2.0.0",
-        "model": "gemini-1.5-flash"
-    }
+def health():
+    return {"status": "operational", "api_key_set": bool(api_key)}
 
 if __name__ == "__main__":
     import uvicorn
-    print("🚀 Starting Veritas Intelligence Protocol...")
-    print(f"📡 API Key: {'✅ Configured' if api_key else '❌ Missing'}")
-    uvicorn.run(app, host="0.0.0.0")
+    # Render provides a dynamic PORT, we must listen to it
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
