@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Veritas Intelligence</title>
-    <!-- Importing the official Institutional Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -14,89 +13,150 @@
         }
 
         body {
-            width: 350px;
-            min-height: 480px;
-            font-family: 'Inter', sans-serif;
-            background: #1a1a1a; /* DEEP CHARCOAL */
+            width: 360px;
+            min-height: 500px;
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #111111 100%);
             color: #e0e0e0;
-            border: 1px solid #D4AF37; /* GOLD BORDER */
+            border: 1px solid rgba(212, 175, 55, 0.3);
         }
 
         .header {
-            padding: 30px 20px;
+            padding: 32px 24px;
             text-align: center;
-            background: #111111;
-            border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            position: relative;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #D4AF37, transparent);
         }
 
         .header h1 {
             font-family: 'Playfair Display', serif;
-            font-size: 28px;
+            font-size: 32px;
             color: #D4AF37;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
             text-transform: uppercase;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
         .header p {
-            font-size: 10px;
+            font-size: 9px;
             letter-spacing: 3px;
             text-transform: uppercase;
-            opacity: 0.6;
+            opacity: 0.5;
             color: #D4AF37;
+            font-weight: 300;
         }
 
         .stats {
-            padding: 20px;
+            padding: 24px 20px;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            gap: 16px;
         }
 
         .stat-card {
-            background: #222222;
-            padding: 15px;
-            border-radius: 2px;
-            border: 1px solid rgba(212, 175, 55, 0.1);
+            background: linear-gradient(135deg, rgba(62, 39, 35, 0.1) 0%, rgba(45, 45, 45, 0.2) 100%);
+            padding: 18px;
+            border-radius: 4px;
+            border: 1px solid rgba(212, 175, 55, 0.15);
             text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #D4AF37, transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        .stat-card:hover {
+            border-color: rgba(212, 175, 55, 0.3);
+            transform: translateY(-2px);
         }
 
         .stat-card h3 {
             font-size: 9px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
             color: #D4AF37;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
+            font-weight: 600;
         }
 
         .stat-card .value {
             font-family: 'Playfair Display', serif;
-            font-size: 28px;
+            font-size: 36px;
             font-weight: bold;
             color: #ffffff;
+            line-height: 1;
         }
 
         .scan-btn {
-            margin: 10px 20px 20px 20px;
-            padding: 14px;
+            margin: 12px 20px 24px 20px;
+            padding: 16px;
             background: transparent;
             color: #D4AF37;
-            border: 1px solid #D4AF37;
+            border: 1px solid rgba(212, 175, 55, 0.4);
             border-radius: 2px;
             font-family: 'Inter', sans-serif;
-            font-weight: bold;
+            font-weight: 600;
             font-size: 11px;
-            letter-spacing: 2px;
+            letter-spacing: 2.5px;
             text-transform: uppercase;
             cursor: pointer;
             width: calc(100% - 40px);
             transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scan-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(212, 175, 55, 0.1);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s ease, height 0.6s ease;
+        }
+
+        .scan-btn:hover::before {
+            width: 300px;
+            height: 300px;
         }
 
         .scan-btn:hover {
             background: #D4AF37;
             color: #1a1a1a;
-            box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+            border-color: #D4AF37;
+            box-shadow: 0 4px 16px rgba(212, 175, 55, 0.3);
         }
 
         .scan-btn:disabled {
@@ -105,68 +165,103 @@
             border-color: #444;
         }
 
-        .claims-list {
-            padding: 0 20px 20px 20px;
-            max-height: 150px;
-            overflow-y: auto;
-        }
-
-        .claim-item {
-            background: rgba(255,255,255,0.02);
-            padding: 12px;
-            border-left: 2px solid #D4AF37;
-            margin-bottom: 8px;
-            font-size: 11px;
-            line-height: 1.4;
-            color: #bbb;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .claim-item:hover {
-            background: rgba(212, 175, 55, 0.05);
-            color: #fff;
-        }
-
-        .footer {
-            padding: 15px;
-            text-align: center;
-            font-size: 9px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            opacity: 0.3;
-            border-top: 1px solid rgba(212, 175, 55, 0.1);
+        .scan-btn:disabled:hover {
+            background: transparent;
+            color: #D4AF37;
+            box-shadow: none;
         }
 
         .loading {
             text-align: center;
-            padding: 20px;
+            padding: 30px 24px;
+            display: none;
         }
 
         .spinner {
             border: 2px solid rgba(212, 175, 55, 0.1);
             border-top: 2px solid #D4AF37;
             border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 10px auto;
+            width: 32px;
+            height: 32px;
+            animation: spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+            margin: 0 auto 16px auto;
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            to { transform: rotate(360deg); }
         }
 
-        /* Dossier-style scrollbar */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: #1a1a1a; }
-        ::-webkit-scrollbar-thumb { background: #D4AF37; }
+        .loading p {
+            font-size: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #D4AF37;
+            opacity: 0.7;
+        }
+
+        .claims-list {
+            padding: 0 20px 24px 20px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .claims-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .claims-list::-webkit-scrollbar-track {
+            background: rgba(45, 45, 45, 0.3);
+        }
+
+        .claims-list::-webkit-scrollbar-thumb {
+            background: rgba(212, 175, 55, 0.3);
+            border-radius: 2px;
+        }
+
+        .claims-list::-webkit-scrollbar-thumb:hover {
+            background: rgba(212, 175, 55, 0.5);
+        }
+
+        .claim-item {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(212, 175, 55, 0.02) 100%);
+            padding: 14px;
+            border-left: 2px solid rgba(212, 175, 55, 0.4);
+            margin-bottom: 10px;
+            font-size: 11px;
+            line-height: 1.5;
+            color: #bbb;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 2px;
+        }
+
+        .claim-item:hover {
+            background: rgba(212, 175, 55, 0.08);
+            border-left-color: #D4AF37;
+            color: #fff;
+            transform: translateX(4px);
+        }
+
+        .claim-item strong {
+            color: #D4AF37;
+            margin-right: 8px;
+        }
+
+        .footer {
+            padding: 16px;
+            text-align: center;
+            font-size: 8px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            opacity: 0.3;
+            border-top: 1px solid rgba(212, 175, 55, 0.1);
+            background: rgba(0, 0, 0, 0.2);
+        }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>Veritas</h1>
+        <h1>VERITAS</h1>
         <p>Intelligence Protocol</p>
     </div>
 
@@ -181,19 +276,19 @@
         </div>
     </div>
 
-    <button class="scan-btn" id="scanBtn">Commence Protocol</button>
+    <button class="scan-btn" id="scanBtn">COMMENCE PROTOCOL</button>
 
-    <div id="loading" class="loading" style="display: none;">
+    <div id="loading" class="loading">
         <div class="spinner"></div>
-        <p style="font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: #D4AF37;">Consulting Archives...</p>
+        <p>Consulting Archives...</p>
     </div>
 
     <div class="claims-list" id="claimsList"></div>
 
     <div class="footer">
-        Institutional Record | v1.0.0
+        Institutional Record • v2.0
     </div>
 
     <script src="popup.js"></script>
 </body>
-</html>
+    </html>
