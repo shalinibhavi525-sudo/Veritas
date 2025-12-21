@@ -54,7 +54,6 @@ const CLAIM_PATTERNS = [
 function detectClaims() {
     const claims = [];
     
-    // Target specific elements that contain text content
     const selectors = [
         'p',           // Paragraphs
         'li',          // List items
@@ -68,19 +67,16 @@ function detectClaims() {
     const elements = document.querySelectorAll(selectors.join(', '));
     
     elements.forEach(element => {
-        // Skip if already highlighted
         if (element.querySelector('.veritas-highlight') || element.classList.contains('veritas-highlight')) {
             return;
         }
         
         const text = element.innerText?.trim() || '';
         
-        // Check length constraints
         if (text.length < 25 || text.length > 800) {
             return;
         }
         
-        // Check if matches any pattern
         const matchesPattern = CLAIM_PATTERNS.some(pattern => pattern.test(text));
         
         if (matchesPattern) {
@@ -104,21 +100,17 @@ function highlightClaim(element) {
         return;
     }
     
-    // Wrap content in highlight span
     const wrapper = document.createElement('span');
     wrapper.className = 'veritas-highlight';
     wrapper.setAttribute('data-veritas-claim', 'true');
     
-    // Move element's children into wrapper
     while (element.firstChild) {
         wrapper.appendChild(element.firstChild);
     }
     
     element.appendChild(wrapper);
     
-    // Add click handler
     wrapper.addEventListener('click', (e) => {
-        // Don't interfere with links
         if (e.target.tagName === 'A' || e.target.closest('a')) {
             return;
         }
@@ -133,20 +125,17 @@ function highlightClaim(element) {
  */
 function checkClaim(claimText) {
     console.log('🔍 Checking claim:', claimText.substring(0, 50) + '...');
-    
-    // Add loading state to highlights
+
     const highlights = document.querySelectorAll('.veritas-highlight');
     highlights.forEach(h => {
         if (h.innerText.includes(claimText.substring(0, 30))) {
             h.classList.add('veritas-checking');
         }
     });
-    
-    // Send to background script
+
     chrome.runtime.sendMessage(
         { action: 'factCheck', claim: claimText },
         response => {
-            // Remove loading state
             document.querySelectorAll('.veritas-checking')
                 .forEach(h => h.classList.remove('veritas-checking'));
             
@@ -163,13 +152,11 @@ function checkClaim(claimText) {
  * Show fact-check result in modal
  */
 function showClaimResult(result) {
-    // Remove existing popup
     const existing = document.querySelector('.veritas-popup');
     if (existing) {
         existing.remove();
     }
     
-    // Build sources HTML
     let sourcesHTML = '';
     if (result.sources && result.sources.length > 0) {
         const sourcesList = result.sources
@@ -182,12 +169,10 @@ function showClaimResult(result) {
             </div>
         `;
     }
-    
-    // Determine credibility class
+
     const credibilityClass = getCredibilityClass(result.credibility);
     const credibilityPercent = Math.round(result.credibility * 100);
-    
-    // Create popup
+
     const popup = document.createElement('div');
     popup.className = 'veritas-popup';
     popup.innerHTML = `
@@ -214,13 +199,11 @@ function showClaimResult(result) {
     `;
     
     document.body.appendChild(popup);
-    
-    // Close button handler
+
     popup.querySelector('.veritas-popup-close').addEventListener('click', () => {
         popup.remove();
     });
-    
-    // Click outside to close
+
     popup.addEventListener('click', (e) => {
         if (e.target === popup) {
             popup.remove();
@@ -237,17 +220,14 @@ function getCredibilityClass(score) {
     return 'low';
 }
 
-// Message listener for extension actions
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log('📨 Message received:', request.action);
     
     if (request.action === 'manualCheck') {
-        // Right-click context menu check
         checkClaim(request.text);
         sendResponse({ status: 'checking' });
     }
     else if (request.action === 'runVeritasProtocol') {
-        // Popup scan button
         const claims = detectClaims();
         claims.forEach(c => highlightClaim(c.node));
         sendResponse({ 
@@ -256,13 +236,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         });
     }
     else if (request.action === 'getClaims') {
-        // Get current highlighted claims
         const highlighted = Array.from(document.querySelectorAll('.veritas-highlight'))
             .map(h => ({ text: h.innerText }));
         sendResponse({ claims: highlighted });
     }
     else if (request.action === 'scrollToClaim') {
-        // Scroll to and check specific claim
         const highlights = document.querySelectorAll('.veritas-highlight');
         for (let h of highlights) {
             if (h.innerText.includes(request.text.substring(0, 30))) {
