@@ -54,7 +54,7 @@ class ClaimResponse(BaseModel):
 
 @app.post("/api/check", response_model=ClaimResponse)
 @limiter.limit("15/minute")
-async def check_claim(request: Request, claim_request: ClaimRequest:
+async def check_claim(request: Request, claim_request: ClaimRequest):
     claim_text = sanitize_claim(claim_request.text) 
     
     
