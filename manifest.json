@@ -8,9 +8,9 @@
     "storage",
     "scripting",
     "contextMenus"
-  ]
+  ],
   "host_permissions": [
-    "https://*/*",
+    "https://*/*"
   ],
   "action": {
     "default_popup": "popup.html",
