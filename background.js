@@ -47,7 +47,7 @@ async function checkClaimWithAPI(claimText) {
         console.log('🌐 Calling API:', API_URL);
         
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+        const timeoutId = setTimeout(() => controller.abort(), 10000); 
         
         const response = await fetch(API_URL, {
             method: 'POST',
@@ -93,8 +93,8 @@ function createFallbackResponse(claim, error) {
     if (error.name === 'AbortError') {
         return {
             claim: claim,
-            status: 'Connection Timeout',
-            explanation: 'Veritas backend is waking up (free tier cold start). Please try again in 30 seconds.',
+            status: 'Backend Starting',
+            explanation: '⏰ Veritas backend is waking up from Render free tier sleep (~30s on first request). This is normal! Please try again in 30 seconds, then all future checks will be instant (2-3s).',
             credibility: 0.5,
             sources: []
         };
