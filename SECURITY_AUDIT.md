@@ -1,6 +1,6 @@
 # 🔒 Veritas Security Audit Report
 
-**Date:** December 22, 2024  
+**Date:** December 22, 2025
 **Auditor:** Self-conducted following OWASP guidelines  
 **Scope:** Full-stack Chrome Extension + FastAPI Backend  
 **Methodology:** Isolated test environment on separate Render service
@@ -171,4 +171,4 @@ This audit demonstrates:
 
 **Audited & Patched By:** Shambhavi Singh  
 **GitHub:** [@shalinibhavi525-sudo](https://github.com/shalinibhavi525-sudo)  
-**Date:** December 22, 2024
+**Date:** December 22, 2025
